@@ -9,9 +9,22 @@ x-agent-common: &agent-common
   cap_add:
     - NET_ADMIN
     - NET_RAW
+  # Block setuid-based privilege escalation. Does NOT affect the root->developer
+  # gosu drop in the entrypoint (dropping privileges is always permitted).
+  security_opt:
+    - no-new-privileges:true
+  # Keep a runaway/compromised agent from exhausting the Docker VM (~62 GB here).
+  # mem_limit is overridable via MEM_LIMIT in .env; raise it toward ~56g for
+  # memory-hungry M2 tests, but stay under the VM total. pids_limit is a
+  # fork-bomb ceiling, well above what a high -j M2 build/check needs.
+  mem_limit: ${MEM_LIMIT:-48g}
+  pids_limit: 1024
   environment:
     SANDBOX_FIREWALL: ${SANDBOX_FIREWALL:-1}
     ALLOWLIST_EXTRA: ${ALLOWLIST_EXTRA:-}
+    # Reach the host/LAN /24 from the container? Default off for tighter
+    # isolation; not needed for normal work (Docker embedded DNS is separate).
+    ALLOW_HOST_NETWORK: ${ALLOW_HOST_NETWORK:-0}
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
   stdin_open: true
   tty: true

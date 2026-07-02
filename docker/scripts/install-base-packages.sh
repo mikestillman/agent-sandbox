@@ -12,6 +12,7 @@ apt-get install -y \
   curl \
   ca-certificates \
   vim \
+  emacs-nox \
   ripgrep \
   fd-find \
   jq \

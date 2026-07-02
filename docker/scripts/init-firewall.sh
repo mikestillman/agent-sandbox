@@ -21,6 +21,7 @@ ALLOWED_DOMAINS=(
   api.anthropic.com
   claude.ai
   platform.claude.com
+  downloads.claude.ai   # native installer + Claude Code self-update
   # OpenAI / Codex (required; both auth modes)
   auth.openai.com
   chatgpt.com

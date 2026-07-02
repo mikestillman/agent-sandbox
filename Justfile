@@ -45,13 +45,27 @@ base-for dir: (_check-dir dir)
 build-all:
     docker compose build base m2
 
-# Run once after creating a new home/    
+# The bootstrap/check-ai targets below install into (or inspect) the sandbox home
+# and don't use /workspace, but the shared compose config always mounts it. So
+# they set PROJECT_DIR to a throwaway empty dir; the real project mount is only
+# needed by the shell/agent targets.
+
+# Install both agent CLIs into AGENT_HOME. Run once after creating a new home.
+bootstrap: bootstrap-codex bootstrap-claude
+
+# Install the Codex CLI into AGENT_HOME.
 bootstrap-codex:
-    docker compose run --rm base bash -lc \
+    PROJECT_DIR="$(mktemp -d)" docker compose run --rm base bash -lc \
       'curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh'
 
+# Install the Claude Code CLI into AGENT_HOME.
+bootstrap-claude:
+    PROJECT_DIR="$(mktemp -d)" docker compose run --rm base bash -lc \
+      'curl -fsSL https://claude.ai/install.sh | bash'
+
+# Verify both agent CLIs are installed and runnable.
 check-ai:
-    docker compose run --rm base bash -lc 'which codex && codex --version && which claude && claude --version'
+    PROJECT_DIR="$(mktemp -d)" docker compose run --rm base bash -lc 'which codex && codex --version && which claude && claude --version'
 
 codex-for dir: (_check-dir dir)
     PROJECT_DIR="{{dir}}" docker compose run --rm base bash -lc 'cd /workspace && codex'

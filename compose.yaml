@@ -1,5 +1,24 @@
+# Shared config for every sandbox service. Both services are identical except
+# for their build/image; keep the mounts, firewall caps, and env in one place.
+x-agent-common: &agent-common
+  working_dir: /workspace
+  volumes:
+    - ${PROJECT_DIR:?set PROJECT_DIR to the specific project directory to mount}:/workspace
+    - ${AGENT_HOME:?set AGENT_HOME to the dedicated sandbox home directory}:/home/developer
+  # Required for the entrypoint to configure the egress firewall (iptables/ipset).
+  cap_add:
+    - NET_ADMIN
+    - NET_RAW
+  environment:
+    SANDBOX_FIREWALL: ${SANDBOX_FIREWALL:-1}
+    ALLOWLIST_EXTRA: ${ALLOWLIST_EXTRA:-}
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+  stdin_open: true
+  tty: true
+
 services:
   base:
+    <<: *agent-common
     build:
       context: .
       dockerfile: docker/Dockerfile.base
@@ -7,21 +26,10 @@ services:
         UID: ${UID}
         GID: ${GID}
     image: m2-agent-base
-    working_dir: /workspace
-    volumes:
-      - ${PROJECT_DIR}:/workspace
-      - /Users/mike/private/agent-sandbox-home:/home/developer
-    stdin_open: true
-    tty: true
 
   m2:
+    <<: *agent-common
     build:
       context: .
       dockerfile: docker/Dockerfile.m2
     image: m2-agent-m2
-    working_dir: /workspace
-    volumes:
-      - ${PROJECT_DIR}:/workspace
-      - /Users/mike/private/agent-sandbox-home:/home/developer
-    stdin_open: true
-    tty: true

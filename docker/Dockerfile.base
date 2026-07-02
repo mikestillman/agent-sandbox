@@ -7,18 +7,27 @@ COPY docker/scripts/install-base-packages.sh /tmp/
 RUN bash /tmp/install-base-packages.sh
 
 RUN set -eux; \
-    mkdir -p /etc/sudoers.d; \
     if ! getent group ${GID} >/dev/null; then groupadd -g ${GID} hostgroup; fi; \
-    useradd -m -u ${UID} -g ${GID} -s /bin/bash developer; \
-    echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer; \
-    chmod 0440 /etc/sudoers.d/developer
+    useradd -m -u ${UID} -g ${GID} -s /bin/bash developer
 
-USER developer
+# NOTE: `developer` is intentionally NOT a sudoer. This sandbox is a security
+# boundary: the agent cannot escalate to root, so it cannot tamper with the
+# egress firewall (the entrypoint applies it as root *before* dropping to
+# developer via gosu). To add packages, edit docker/scripts/install-*-packages.sh
+# and rebuild — runtime `apt install` will no longer work.
 
-# Install Codex CLI for the developer user
-# Do this in the container first time.    
-# RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
-ENV PATH="/home/developer/.local/bin:${PATH}"    
-    
-WORKDIR /work
-    
+# Install the entrypoint (applies the egress firewall as root, then drops to
+# the developer user) and the firewall script itself.
+COPY docker/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/scripts/init-firewall.sh /usr/local/bin/init-firewall.sh
+RUN chmod 0755 /usr/local/bin/entrypoint.sh /usr/local/bin/init-firewall.sh
+
+# Codex/Claude CLIs live in the mounted /home/developer and are installed once
+# via `just bootstrap-codex`. They run from the developer user's ~/.local/bin.
+ENV PATH="/home/developer/.local/bin:${PATH}"
+
+# NOTE: the container starts as root so the entrypoint can configure iptables,
+# then execs the command as `developer` via gosu. Do not add `USER developer`
+# here — that would prevent the firewall from being applied.
+WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

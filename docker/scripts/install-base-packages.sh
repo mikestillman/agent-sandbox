@@ -11,7 +11,6 @@ apt-get install -y \
   git \
   curl \
   ca-certificates \
-  sudo \
   vim \
   ripgrep \
   fd-find \
@@ -23,6 +22,11 @@ apt-get install -y \
   npm \
   gh \
   ccache \
-  pkg-config
+  pkg-config \
+  iptables \
+  ipset \
+  iproute2 \
+  dnsutils \
+  gosu
 
 rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,24 @@
+FROM ubuntu:24.04
+
+ARG UID=505
+ARG GID=20
+
+COPY docker/scripts/install-base-packages.sh /tmp/
+RUN bash /tmp/install-base-packages.sh
+
+RUN set -eux; \
+    mkdir -p /etc/sudoers.d; \
+    if ! getent group ${GID} >/dev/null; then groupadd -g ${GID} hostgroup; fi; \
+    useradd -m -u ${UID} -g ${GID} -s /bin/bash developer; \
+    echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer; \
+    chmod 0440 /etc/sudoers.d/developer
+
+USER developer
+
+# Install Codex CLI for the developer user
+# Do this in the container first time.    
+# RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
+ENV PATH="/home/developer/.local/bin:${PATH}"    
+    
+WORKDIR /work
+    

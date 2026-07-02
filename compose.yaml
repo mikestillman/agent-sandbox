@@ -1,0 +1,27 @@
+services:
+  base:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.base
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    image: m2-agent-base
+    working_dir: /workspace
+    volumes:
+      - ${PROJECT_DIR}:/workspace
+      - /Users/mike/private/agent-sandbox-home:/home/developer
+    stdin_open: true
+    tty: true
+
+  m2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.m2
+    image: m2-agent-m2
+    working_dir: /workspace
+    volumes:
+      - ${PROJECT_DIR}:/workspace
+      - /Users/mike/private/agent-sandbox-home:/home/developer
+    stdin_open: true
+    tty: true

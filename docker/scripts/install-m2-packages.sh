@@ -28,7 +28,13 @@ apt-get install -y --no-install-recommends \
   ninja-build \
   texinfo
 
-# Macaulay2 build-from-source library dependencies (verbatim from the M2 wiki, deduped).
+# Macaulay2 build-from-source library dependencies (from the M2 wiki, deduped).
+#
+# Intentionally NOT installed (do not re-add): gfan and msolve. Ubuntu 24.04
+# ships versions older than M2's build system requires, and M2's handling of the
+# too-old system package is currently broken (fails the cmake/autotools build).
+# Leaving them out lets M2 build its own current copies from source. Revisit if
+# that upstream version-handling is fixed or Ubuntu ships new enough packages.
 apt-get install -y --no-install-recommends \
   4ti2 \
   autoconf \

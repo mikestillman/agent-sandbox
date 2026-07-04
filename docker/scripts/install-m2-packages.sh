@@ -39,7 +39,6 @@ apt-get install -y --no-install-recommends \
   fflas-ffpack \
   flex \
   g++ \
-  gfan \
   gfortran \
   git \
   install-info \
@@ -79,7 +78,6 @@ apt-get install -y --no-install-recommends \
   libxml2-dev \
   lrslib \
   make \
-  msolve \
   nauty \
   normaliz \
   patch \

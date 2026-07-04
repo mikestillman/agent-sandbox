@@ -3,6 +3,19 @@ FROM ubuntu:24.04
 ARG UID=505
 ARG GID=20
 
+# Register Kitware's apt repo so `cmake` resolves to the latest upstream release
+# instead of Ubuntu 24.04's stock 3.28. Uses a dearmored keyring + signed-by
+# (apt-key is deprecated on noble). Assumes ubuntu:24.04 (noble). The actual
+# `apt-get install cmake` happens in install-base-packages.sh, which runs its own
+# `apt-get update` and will pick up this repo automatically.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg && \
+    curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
+      | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' \
+      > /etc/apt/sources.list.d/kitware.list && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY docker/scripts/install-base-packages.sh /tmp/
 RUN bash /tmp/install-base-packages.sh
 
